@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat - Asistente de Reservas</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="whatsapp-layout">
+        <!-- Main: Chat Area only -->
+        <main class="wsp-chat-container">
+            <!-- Active Chat Header -->
+            <header class="chat-header">
+                <div class="chat-header-avatar">
+                    <i data-lucide="bot"></i>
+                </div>
+                <div class="chat-header-title">
+                    <h3>Asistente Clínica</h3>
+                    <span class="chat-header-subtitle">en línea</span>
+                </div>
+                <div class="header-status-area">
+                    <span class="status-indicator offline" id="status-badge">
+                        <span class="status-dot"></span>
+                        <span class="status-text">API offline</span>
+                    </span>
+                </div>
+                <div class="chat-header-actions">
+                    <i data-lucide="search"></i>
+                    <i data-lucide="paperclip"></i>
+                    <i data-lucide="more-vertical"></i>
+                </div>
+            </header>
+
+            <!-- Chat Window / Messages -->
+            <div class="chat-body" id="chat-messages">
+                <div class="chat-date-separator">HOY</div>
+                
+                <div class="chat-message system">
+                    <p>🔒 Los mensajes están cifrados de extremo a extremo. Ninguna persona fuera de este chat puede leerlos.</p>
+                </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div class="typing-indicator-container" id="typing-indicator" style="display: none;">
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+            </div>
+
+            <!-- Quick Replies (Floating Chips above Input) -->
+            <div class="quick-replies-panel">
+                <div class="quick-replies-wrapper" id="quick-replies">
+                    <button class="quick-reply-chip" data-msg="Hola, soy Carlos Mendoza (celular +51 999 888 777). Quiero reservar una cita para Dermatología mañana a las 11:00">✅ Reserva Rápida (Éxito)</button>
+                    <button class="quick-reply-chip" data-msg="Quiero reservar una cita">🗓️ Reserva Paso a Paso</button>
+                    <button class="quick-reply-chip" data-msg="¿Cuánto cuesta una consulta de Medicina General y qué servicios tienen?">🔍 Preguntar Precios y Servicios</button>
+                    <button class="quick-reply-chip" data-msg="¿A qué hora abren los sábados y cuáles son las políticas de cancelación?">🕒 Horarios y Cancelación</button>
+                    <button class="quick-reply-chip" data-msg="Quiero cancelar mi cita de mañana">❌ Cancelar Cita</button>
+                    <button class="quick-reply-chip" data-msg="Quiero reprogramar mi cita de la próxima semana">🔄 Reprogramar Cita</button>
+                </div>
+            </div>
+
+            <!-- Chat Input Footer -->
+            <footer class="chat-footer">
+                <button class="footer-icon-btn" title="Emojis">
+                    <i data-lucide="smile"></i>
+                </button>
+                <button class="footer-icon-btn" title="Adjuntar">
+                    <i data-lucide="plus"></i>
+                </button>
+                
+                <form class="input-form" id="chat-form">
+                    <input type="text" id="chat-input" placeholder="Escribe un mensaje" required autocomplete="off">
+                    <button type="submit" class="send-voice-btn" id="send-button">
+                        <i data-lucide="send" id="send-icon"></i>
+                    </button>
+                </form>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>

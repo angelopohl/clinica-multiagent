@@ -1,3 +1,6 @@
+import datetime
+from app.database.sqlite_db import SessionLocal
+from app.services.appointment_service import AppointmentService
 from app.agents.intent_agent import IntentAgent
 from app.agents.rag_agent import RagAgent
 from app.agents.validation_agent import ValidationAgent
@@ -16,8 +19,12 @@ class OrchestratorAgent:
         self.state = {"current_flow": None, "appointment_data": {}}
 
     def process_message(self, user_message: str) -> str:
-        if self.state["current_flow"] == "booking":
+        if self.state.get("current_flow") == "booking":
             return self._handle_booking_flow(user_message)
+        elif self.state.get("current_flow") == "cancellation":
+            return self._handle_cancellation_flow(user_message)
+        elif self.state.get("current_flow") == "rescheduling":
+            return self._handle_rescheduling_flow(user_message)
 
         intent_response = self.intent_agent.detect_intent(user_message)
         intent = intent_response.get("intent", "unknown")
@@ -40,8 +47,14 @@ class OrchestratorAgent:
             self.state["current_flow"] = "booking"
             self.state["appointment_data"] = entities
             return self._handle_booking_flow(user_message)
-        elif intent in ["cancel_appointment", "reschedule_appointment"]:
-            return "Actualmente solo soportamos crear citas y responder preguntas. La cancelación o reprogramación está en desarrollo."
+        elif intent == "cancel_appointment":
+            self.state["current_flow"] = "cancellation"
+            self.state["cancellation_data"] = entities or {}
+            return self._handle_cancellation_flow(user_message)
+        elif intent == "reschedule_appointment":
+            self.state["current_flow"] = "rescheduling"
+            self.state["reschedule_data"] = entities or {}
+            return self._handle_rescheduling_flow(user_message)
         
         return "Lo siento, no entendí tu solicitud."
 
@@ -67,3 +80,108 @@ class OrchestratorAgent:
             self.state = {"current_flow": None, "appointment_data": {}}
             return msg
         return "Hubo un error al reservar."
+
+    def _handle_cancellation_flow(self, user_message: str) -> str:
+        data = self.state.get("cancellation_data", {})
+        
+        import re
+        appt_id = data.get("appointment_id")
+        if not appt_id:
+            match = re.search(r'\b\d+\b', user_message)
+            if match:
+                appt_id = int(match.group(0))
+                data["appointment_id"] = appt_id
+                
+        if not appt_id:
+            return "Por favor, indícame el ID de la cita que deseas cancelar (ejemplo: 3)."
+            
+        db = SessionLocal()
+        try:
+            service = AppointmentService(db)
+            success = service.delete_appointment(appt_id)
+            self.state = {"current_flow": None, "appointment_data": {}}
+            if success:
+                return f"Tu cita con ID {appt_id} ha sido cancelada exitosamente."
+            else:
+                return f"No encontré ninguna cita registrada con el ID {appt_id}."
+        finally:
+            db.close()
+
+    def _handle_rescheduling_flow(self, user_message: str) -> str:
+        data = self.state.get("reschedule_data", {})
+        if not data:
+            data = {}
+            self.state["reschedule_data"] = data
+            
+        import re
+        
+        if not data.get("appointment_id"):
+            match = re.search(r'\b\d+\b', user_message)
+            if match:
+                data["appointment_id"] = int(match.group(0))
+                
+        if not data.get("date"):
+            match = re.search(r'\b\d{4}-\d{2}-\d{2}\b', user_message)
+            if match:
+                data["date"] = match.group(0)
+                
+        if not data.get("time"):
+            match = re.search(r'\b\d{2}:\d{2}\b', user_message)
+            if match:
+                data["time"] = match.group(0)
+
+        missing_fields = []
+        if not data.get("appointment_id"): missing_fields.append("el ID de tu cita")
+        if not data.get("date"): missing_fields.append("la nueva fecha (AAAA-MM-DD)")
+        if not data.get("time"): missing_fields.append("la nueva hora (HH:MM)")
+        
+        if missing_fields:
+            prompt = f"""
+            Extract entities for rescheduling.
+            Current data: {data}
+            Latest message: "{user_message}"
+            Extract "appointment_id" (int), "date" (YYYY-MM-DD), and "time" (HH:MM) from the message and return them.
+            If date is relative like "mañana" or "pasado mañana", assume today is {datetime.date.today().strftime('%Y-%m-%d')}.
+            Output JSON format:
+            {{
+                "appointment_id": int or null,
+                "date": "YYYY-MM-DD" or null,
+                "time": "HH:MM" or null
+            }}
+            """
+            try:
+                extracted = self.intent_agent.gemini_service.generate_json(prompt)
+                for k, v in extracted.items():
+                    if v and not data.get(k):
+                        data[k] = v
+            except Exception:
+                pass
+                
+        missing_fields = []
+        if not data.get("appointment_id"): missing_fields.append("el ID de tu cita")
+        if not data.get("date"): missing_fields.append("la nueva fecha (AAAA-MM-DD)")
+        if not data.get("time"): missing_fields.append("la nueva hora (HH:MM)")
+        
+        if missing_fields:
+            return f"Para reprogramar, por favor indícame: {', '.join(missing_fields)}."
+            
+        appt_id = int(data["appointment_id"])
+        date = data["date"]
+        time = data["time"]
+        
+        avail = self.availability_agent.check_availability(date, time)
+        if avail["status"] == "unavailable":
+            data["time"] = None
+            return f"Ese horario ({time}) no está disponible para la fecha {date}. Alternativas: {', '.join(avail.get('alternatives', []))}. Por favor indica una de ellas."
+            
+        db = SessionLocal()
+        try:
+            service = AppointmentService(db)
+            success = service.update_appointment(appt_id, date, time)
+            self.state = {"current_flow": None, "appointment_data": {}}
+            if success:
+                return f"Tu cita con ID {appt_id} ha sido reprogramada exitosamente para el {date} a las {time}."
+            else:
+                return f"No encontré ninguna cita registrada con el ID {appt_id}."
+        finally:
+            db.close()

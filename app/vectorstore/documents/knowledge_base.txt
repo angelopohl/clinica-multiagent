@@ -1,0 +1,23 @@
+SERVICIOS Y PRECIOS DE LA CLÍNICA Y ESTÉTICA:
+- Consulta de Medicina General: $50 USD. Duración aproximada: 30 minutos.
+- Consulta de Dermatología: $80 USD. Duración aproximada: 45 minutos.
+- Odontología / Limpieza Dental: $40 USD. Duración aproximada: 45 minutos.
+- Corte de Cabello / Estética: $25 USD. Duración aproximada: 30 minutos.
+- Manicure y Pedicure: $15 USD. Duración aproximada: 40 minutos.
+- Masaje Relajante y Terapéutico: $60 USD. Duración aproximada: 60 minutos.
+
+HORARIOS DE ATENCIÓN DE LA CLÍNICA:
+- Lunes a Viernes: de 09:00 AM a 06:00 PM (última cita a las 05:00 PM).
+- Sábados: de 09:00 AM a 02:00 PM (última cita a las 01:00 PM).
+- Domingos: Cerrado. No hay atención ni reservas para los domingos.
+
+POLÍTICAS DE RESERVA Y CANCELACIÓN:
+- Las citas deben reservarse con al menos 2 horas de anticipación.
+- Para cancelar o reprogramar una cita, el usuario debe avisar con al menos 24 horas de anticipación.
+- Si cancela con menos de 24 horas o no asiste a la cita, se aplicará una penalidad del 50% del costo del servicio en su siguiente visita.
+- Las confirmaciones se envían automáticamente por este medio una vez confirmada la cita.
+
+UBICACIÓN Y CONTACTO:
+- Dirección: Avenida Principal 123, Edificio San José, Piso 2, Oficina 204.
+- Teléfono y WhatsApp de contacto: +1 555-0199.
+- Correo electrónico: contacto@clinicamultiagente.com

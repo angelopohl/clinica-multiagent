@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import os
 
 from app.database.sqlite_db import engine, Base
@@ -83,3 +84,7 @@ def get_availability(date: str):
         return {"date": date, "available_slots": available_slots}
     finally:
         db.close()
+
+# Mount frontend static files as a fallback (after API routes)
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
+

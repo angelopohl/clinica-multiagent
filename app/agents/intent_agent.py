@@ -19,7 +19,8 @@ class IntentAgent:
                 "date": "YYYY-MM-DD or null",
                 "time": "HH:MM or null",
                 "service": "string or null",
-                "name": "string or null"
+                "name": "string or null",
+                "appointment_id": "integer or null"
             }}
         }}
         """

@@ -28,3 +28,20 @@ class AppointmentService:
 
     def get_all_appointments(self):
         return self.db.query(models.Appointment).all()
+
+    def delete_appointment(self, appointment_id: int) -> bool:
+        appt = self.db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()
+        if appt:
+            self.db.delete(appt)
+            self.db.commit()
+            return True
+        return False
+
+    def update_appointment(self, appointment_id: int, new_date: str, new_time: str) -> bool:
+        appt = self.db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()
+        if appt:
+            appt.appointment_date = new_date
+            appt.appointment_time = new_time
+            self.db.commit()
+            return True
+        return False
