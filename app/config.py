@@ -1,8 +1,8 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-2.0-flash"
+    OLLAMA_URL: str = "http://localhost:11434"
+    OLLAMA_MODEL: str = "phi3"
     DATABASE_URL: str = "sqlite:///./appointments.db"
     CHROMA_DB_PATH: str = "./chroma_db"
 
