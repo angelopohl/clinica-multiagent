@@ -19,6 +19,19 @@ app = FastAPI(
     version="1.0.0"
 )
 
+@app.on_event("startup")
+def on_startup():
+    # Auto-ingest RAG documents on startup if ChromaDB is empty
+    try:
+        from app.vectorstore.chroma_store import chroma_store
+        if chroma_store.collection.count() == 0:
+            print("ChromaDB is empty. Auto-ingesting documents...")
+            from app.vectorstore.ingest_documents import ingest
+            ingest()
+    except Exception as e:
+        print(f"Error on startup RAG ingestion: {e}")
+
+
 # Allow CORS
 app.add_middleware(
     CORSMiddleware,
