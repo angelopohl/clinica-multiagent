@@ -12,7 +12,7 @@ class GeminiService:
             print("Gemini Service: GEMINI_API_KEY detected. Using Google Gemini API cloud service.")
             import google.generativeai as genai
             genai.configure(api_key=self.api_key)
-            self.model_name = os.environ.get("GEMINI_MODEL") or "gemini-1.5-flash"
+            self.model_name = os.environ.get("GEMINI_MODEL") or "gemini-2.5-flash"
             self.model = genai.GenerativeModel(self.model_name)
             self.use_cloud = True
         else:
