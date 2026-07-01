@@ -19,13 +19,6 @@ class OrchestratorAgent:
         self.state = {"current_flow": None, "appointment_data": {}}
 
     def process_message(self, user_message: str) -> str:
-        if self.state.get("current_flow") == "booking":
-            return self._handle_booking_flow(user_message)
-        elif self.state.get("current_flow") == "cancellation":
-            return self._handle_cancellation_flow(user_message)
-        elif self.state.get("current_flow") == "rescheduling":
-            return self._handle_rescheduling_flow(user_message)
-
         intent_response = self.intent_agent.detect_intent(user_message)
         intent = intent_response.get("intent", "unknown")
         entities = intent_response.get("entities", {})
@@ -36,27 +29,41 @@ class OrchestratorAgent:
         print(f"Intent detectado: {intent}")
         print(f"------------------------")
 
-        if intent == "general_query":
-            return self.rag_agent.answer_query(user_message)
-        elif intent == "check_availability":
-            date = entities.get("date")
-            if not date: return "¿Para qué fecha quieres consultar?"
-            avail = self.availability_agent.check_availability(date)
-            return f"Para {date}, horarios disponibles: {', '.join(avail.get('available_slots', []))}"
-        elif intent == "book_appointment":
+        # Si se detecta un intento explícito diferente a "unknown", interrumpimos cualquier flujo anterior
+        if intent in ["general_query", "cancel_appointment", "reschedule_appointment", "check_availability"]:
+            self.state = {"current_flow": None, "appointment_data": {}}
+            
+            if intent == "general_query":
+                return self.rag_agent.answer_query(user_message)
+            elif intent == "check_availability":
+                date = entities.get("date")
+                if not date: return "¿Para qué fecha quieres consultar?"
+                avail = self.availability_agent.check_availability(date)
+                return f"Para {date}, horarios disponibles: {', '.join(avail.get('available_slots', []))}"
+            elif intent == "cancel_appointment":
+                self.state["current_flow"] = "cancellation"
+                self.state["cancellation_data"] = entities or {}
+                return self._handle_cancellation_flow(user_message)
+            elif intent == "reschedule_appointment":
+                self.state["current_flow"] = "rescheduling"
+                self.state["reschedule_data"] = entities or {}
+                return self._handle_rescheduling_flow(user_message)
+
+        # Si no hay nuevo intento explícito, continuamos con el flujo activo
+        if self.state.get("current_flow") == "booking":
+            return self._handle_booking_flow(user_message)
+        elif self.state.get("current_flow") == "cancellation":
+            return self._handle_cancellation_flow(user_message)
+        elif self.state.get("current_flow") == "rescheduling":
+            return self._handle_rescheduling_flow(user_message)
+
+        # Si no hay flujo activo pero detectamos un intento de reserva
+        if intent == "book_appointment":
             self.state["current_flow"] = "booking"
             self.state["appointment_data"] = entities
             return self._handle_booking_flow(user_message)
-        elif intent == "cancel_appointment":
-            self.state["current_flow"] = "cancellation"
-            self.state["cancellation_data"] = entities or {}
-            return self._handle_cancellation_flow(user_message)
-        elif intent == "reschedule_appointment":
-            self.state["current_flow"] = "rescheduling"
-            self.state["reschedule_data"] = entities or {}
-            return self._handle_rescheduling_flow(user_message)
         
-        return "Lo siento, no entendí tu solicitud."
+        return "Lo siento, no entendí tu solicitud. ¿Te gustaría agendar, cancelar o reprogramar una cita?"
 
     def _handle_booking_flow(self, user_message: str) -> str:
         validation = self.validation_agent.validate_booking_data(self.state["appointment_data"], user_message)
